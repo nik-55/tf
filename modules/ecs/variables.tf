@@ -5,3 +5,7 @@ variable "subnets" {
 variable "security_groups" {
   type = list(string)
 }
+
+variable "target_group_arn" {
+  type = string
+}

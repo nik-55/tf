@@ -16,11 +16,35 @@ resource "aws_lb_target_group" "remote_dev_tg" {
   tags = {
     Name = "dev"
   }
+
+  count = var.target_type == "instance" ? 1 : 0
+}
+
+resource "aws_lb_target_group" "remote_dev_tg_ip" {
+  name        = "remote-dev-tg"
+  vpc_id      = var.vpc_details.vpc_id
+  target_type = "ip"
+
+  port     = 3100
+  protocol = "HTTP"
+
+  health_check {
+    # Path to health check endpoint
+    path     = "/"
+    protocol = "HTTP"
+    port     = 80
+  }
+
+  tags = {
+    Name = "dev"
+  }
+
+  count = var.target_type == "instance" ? 0 : 1
 }
 
 # targets are instances listening on port 5000
 resource "aws_lb_target_group_attachment" "remote_dev_tg_attachment" {
-  target_group_arn = aws_lb_target_group.remote_dev_tg.arn
+  target_group_arn = aws_lb_target_group.remote_dev_tg[0].arn
 
   for_each = var.instances
 
@@ -47,6 +71,6 @@ resource "aws_lb_listener" "remote_dev_listener" {
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.remote_dev_tg.arn
+    target_group_arn = var.target_type == "instance" ? aws_lb_target_group.remote_dev_tg[0].arn : aws_lb_target_group.remote_dev_tg_ip[0].arn
   }
 }

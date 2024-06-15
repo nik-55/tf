@@ -11,4 +11,10 @@ variable "instances" {
     id   = string
     port = number
   }))
+  default = {}
+}
+
+variable "target_type" {
+  type    = string
+  default = "instance"
 }

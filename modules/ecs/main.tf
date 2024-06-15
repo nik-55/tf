@@ -59,7 +59,13 @@ resource "aws_ecs_service" "remote_dev_service" {
   network_configuration {
     subnets          = var.subnets
     security_groups  = var.security_groups
-    assign_public_ip = true
+    assign_public_ip = false
+  }
+
+  load_balancer {
+    target_group_arn = var.target_group_arn
+    container_name   = "remote-dev-container"
+    container_port   = 80
   }
 
   tags = {

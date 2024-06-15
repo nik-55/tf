@@ -39,37 +39,40 @@ module "vpc" {
 #   vpc_details = module.vpc.vpc_details
 # }
 
-# module "lb" {
-#   source = "./modules/lb"
-#   vpc_details = {
-#     vpc_id          = module.vpc.vpc_details.vpc_id
-#     subnets         = [module.vpc.vpc_details.subnet_id_public, module.vpc.vpc_details.subnet_id_private]
-#     security_groups = [module.vpc.vpc_details.security_group_id]
-#   }
-#   instances = {
-#     "instance_1" : {
-#       id   = module.instance_1.instance_id,
-#       port = 5000
-#     },
-#     "instance_2" : {
-#       id   = module.instance_2.instance_id,
-#       port = 5000
-#     },
-#     "instance_3" : {
-#       id   = module.instance_3.instance_id,
-#       port = 5000
-#     }
-#   }
+module "lb" {
+  source = "./modules/lb"
+  vpc_details = {
+    vpc_id          = module.vpc.vpc_details.vpc_id
+    subnets         = [module.vpc.vpc_details.subnet_id_public, module.vpc.vpc_details.subnet_id_private]
+    security_groups = [module.vpc.vpc_details.security_group_id]
+  }
+  target_type = "ip"
+  # instances = {
+  #   "instance_1" : {
+  #     id   = module.instance_1.instance_id,
+  #     port = 5000
+  #   },
+  #   "instance_2" : {
+  #     id   = module.instance_2.instance_id,
+  #     port = 5000
+  #   },
+  #   "instance_3" : {
+  #     id   = module.instance_3.instance_id,
+  #     port = 5000
+  #   }
+  # }
 
-#   depends_on = [module.instance_1, module.instance_2]
-# }
+  # depends_on = [module.instance_1, module.instance_2]
+}
 
 # module "s3" {
 #   source = "./modules/s3"
 # }
 
 module "ecs" {
-  source          = "./modules/ecs"
-  subnets         = [module.vpc.vpc_details.subnet_id_public]
-  security_groups = [module.vpc.vpc_details.security_group_id]
+  source           = "./modules/ecs"
+  subnets          = [module.vpc.vpc_details.subnet_id_private]
+  security_groups  = [module.vpc.vpc_details.security_group_id]
+  depends_on       = [module.lb]
+  target_group_arn = module.lb.target_group_arn
 }

@@ -17,15 +17,15 @@ resource "aws_subnet" "remote_dev_subnet_public" {
   }
 }
 
-# resource "aws_subnet" "remote_dev_subnet_private" {
-#   vpc_id            = aws_vpc.remote_dev_vpc.id
-#   cidr_block        = "10.0.2.0/24"
-#   availability_zone = "us-east-1e"
+resource "aws_subnet" "remote_dev_subnet_private" {
+  vpc_id            = aws_vpc.remote_dev_vpc.id
+  cidr_block        = "10.0.2.0/24"
+  availability_zone = "us-east-1e"
 
-#   tags = {
-#     Name = "dev"
-#   }
-# }
+  tags = {
+    Name = "dev"
+  }
+}
 
 
 resource "aws_internet_gateway" "remote_dev_igw" {
@@ -86,38 +86,38 @@ resource "aws_security_group" "remote_dev_sg" {
 #   }
 # }
 
-# resource "aws_eip" "remote_dev_eip" {
-#   domain = "vpc"
+resource "aws_eip" "remote_dev_eip" {
+  domain = "vpc"
 
-#   tags = {
-#     Name = "dev"
-#   }
-# }
+  tags = {
+    Name = "dev"
+  }
+}
 
-# resource "aws_nat_gateway" "remote_dev_nat" {
-#   subnet_id         = aws_subnet.remote_dev_subnet_public.id
-#   connectivity_type = "public"
-#   allocation_id     = aws_eip.remote_dev_eip.id
+resource "aws_nat_gateway" "remote_dev_nat" {
+  subnet_id         = aws_subnet.remote_dev_subnet_public.id
+  connectivity_type = "public"
+  allocation_id     = aws_eip.remote_dev_eip.id
 
-#   tags = {
-#     Name = "dev"
-#   }
-# }
+  tags = {
+    Name = "dev"
+  }
+}
 
-# resource "aws_route_table" "remote_dev_route_table_private" {
-#   vpc_id = aws_vpc.remote_dev_vpc.id
-#   tags = {
-#     Name = "dev"
-#   }
-# }
+resource "aws_route_table" "remote_dev_route_table_private" {
+  vpc_id = aws_vpc.remote_dev_vpc.id
+  tags = {
+    Name = "dev"
+  }
+}
 
-# resource "aws_route" "remote_dev_route_private" {
-#   route_table_id         = aws_route_table.remote_dev_route_table_private.id
-#   destination_cidr_block = "0.0.0.0/0"
-#   gateway_id             = aws_nat_gateway.remote_dev_nat.id
-# }
+resource "aws_route" "remote_dev_route_private" {
+  route_table_id         = aws_route_table.remote_dev_route_table_private.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_nat_gateway.remote_dev_nat.id
+}
 
-# resource "aws_route_table_association" "remote_dev_route_table_association_private" {
-#   subnet_id      = aws_subnet.remote_dev_subnet_private.id
-#   route_table_id = aws_route_table.remote_dev_route_table_private.id
-# }
+resource "aws_route_table_association" "remote_dev_route_table_association_private" {
+  subnet_id      = aws_subnet.remote_dev_subnet_private.id
+  route_table_id = aws_route_table.remote_dev_route_table_private.id
+}
