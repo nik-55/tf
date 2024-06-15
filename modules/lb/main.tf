@@ -74,3 +74,36 @@ resource "aws_lb_listener" "remote_dev_listener" {
     target_group_arn = var.target_type == "instance" ? aws_lb_target_group.remote_dev_tg[0].arn : aws_lb_target_group.remote_dev_tg_ip[0].arn
   }
 }
+
+resource "aws_lb_target_group" "remote_dev_tg_ip_apache" {
+  name        = "remote-dev-tg-apache"
+  vpc_id      = var.vpc_details.vpc_id
+  target_type = "ip"
+
+  port     = 3100
+  protocol = "HTTP"
+
+  health_check {
+    # Path to health check endpoint
+    path     = "/"
+    protocol = "HTTP"
+    port     = 80
+  }
+
+  tags = {
+    Name = "dev"
+  }
+
+  count = var.target_type == "instance" ? 0 : 1
+}
+
+resource "aws_lb_listener" "remote_dev_listener_apache" {
+  load_balancer_arn = aws_lb.remote_dev_lb.arn
+  port              = "8000"
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = var.target_type == "instance" ? aws_lb_target_group.remote_dev_tg[0].arn : aws_lb_target_group.remote_dev_tg_ip_apache[0].arn
+  }
+}

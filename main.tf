@@ -75,4 +75,5 @@ module "ecs" {
   security_groups  = [module.vpc.vpc_details.security_group_id]
   depends_on       = [module.lb]
   target_group_arn = module.lb.target_group_arn
+  target_group_arn_apache = module.lb.target_group_arn_apache
 }

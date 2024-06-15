@@ -9,3 +9,7 @@ variable "security_groups" {
 variable "target_group_arn" {
   type = string
 }
+
+variable "target_group_arn_apache" {
+  type = string
+}
