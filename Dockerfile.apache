@@ -1,0 +1,5 @@
+# Use the official Nginx image as base image
+FROM nginx:latest
+
+# Copy static content (here just a simple index.html)
+COPY index.html /usr/share/nginx/html/index.html

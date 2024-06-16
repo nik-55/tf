@@ -3,9 +3,10 @@ module "vpc" {
   public_key = file("rsa.pub")
 }
 
-# module "iam" {
-#   source = "./modules/iam"
-# }
+module "iam" {
+  source     = "./modules/iam"
+  depends_on = [module.vpc]
+}
 
 # module "instance_1" {
 #   source = "./modules/instance"
@@ -47,6 +48,7 @@ module "lb" {
     security_groups = [module.vpc.vpc_details.security_group_id]
   }
   target_type = "ip"
+  depends_on  = [module.iam]
   # instances = {
   #   "instance_1" : {
   #     id   = module.instance_1.instance_id,
@@ -70,10 +72,11 @@ module "lb" {
 # }
 
 module "ecs" {
-  source           = "./modules/ecs"
-  subnets          = [module.vpc.vpc_details.subnet_id_private]
-  security_groups  = [module.vpc.vpc_details.security_group_id]
-  depends_on       = [module.lb]
-  target_group_arn = module.lb.target_group_arn
+  source                  = "./modules/ecs"
+  subnets                 = [module.vpc.vpc_details.subnet_id_private]
+  security_groups         = [module.vpc.vpc_details.security_group_id]
+  depends_on              = [module.lb, module.iam]
+  target_group_arn        = module.lb.target_group_arn
   target_group_arn_apache = module.lb.target_group_arn_apache
+  ecs_ecr_role            = module.iam.ecs_ecr_role
 }

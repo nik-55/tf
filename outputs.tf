@@ -13,7 +13,7 @@
 #   description = "Public IP of the third instance"
 # }
 
-# output "lb_dns_name" {
-#   value       = module.lb.lb_dns_name
-#   description = "DNS name of the load balancer"
-# }
+output "lb_dns_name" {
+  value       = module.lb.lb_dns_name
+  description = "DNS name of the load balancer"
+}

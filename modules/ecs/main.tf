@@ -1,3 +1,21 @@
+resource "aws_ecr_repository" "remote_dev_ecr" {
+  name                 = "remote-dev-ecr"
+  image_tag_mutability = "MUTABLE"
+
+  tags = {
+    Name = "dev"
+  }
+}
+
+resource "aws_ecr_repository" "remote_dev_ecr_apache" {
+  name                 = "remote-dev-ecr-apache"
+  image_tag_mutability = "MUTABLE"
+
+  tags = {
+    Name = "dev"
+  }
+}
+
 resource "aws_ecs_cluster" "remote_dev_cluster" {
   name = "remote-dev-cluster"
 
@@ -27,11 +45,12 @@ resource "aws_ecs_task_definition" "remote_dev_task_definition" {
 
   requires_compatibilities = ["FARGATE"]
 
-  network_mode = "awsvpc"
+  network_mode       = "awsvpc"
+  execution_role_arn = var.ecs_ecr_role
 
   container_definitions = jsonencode([{
     name      = "remote-dev-container"
-    image     = "nginx:latest"
+    image     = "${aws_ecr_repository.remote_dev_ecr.repository_url}:latest"
     memory    = 1024
     cpu       = 512
     essential = true
@@ -39,9 +58,14 @@ resource "aws_ecs_task_definition" "remote_dev_task_definition" {
       containerPort = 80
       hostPort      = 80
     }]
+    healthCheck = {
+      command = ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"]
+    }
   }])
 
   skip_destroy = true
+
+  depends_on = [aws_ecr_repository.remote_dev_ecr]
 
   tags = {
     Name = "dev"
@@ -59,11 +83,13 @@ resource "aws_ecs_task_definition" "remote_dev_task_definition_apache" {
 
   requires_compatibilities = ["FARGATE"]
 
+  execution_role_arn = var.ecs_ecr_role
+
   network_mode = "awsvpc"
 
   container_definitions = jsonencode([{
     name      = "remote-dev-container"
-    image     = "httpd:latest"
+    image     = "${aws_ecr_repository.remote_dev_ecr_apache.repository_url}:latest"
     memory    = 1024
     cpu       = 512
     essential = true
@@ -71,9 +97,15 @@ resource "aws_ecs_task_definition" "remote_dev_task_definition_apache" {
       containerPort = 80
       hostPort      = 80
     }]
+    healthCheck = {
+      command = ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"]
+      timeout = 10
+    }
   }])
 
   skip_destroy = true
+
+  depends_on = [aws_ecr_repository.remote_dev_ecr_apache]
 
   tags = {
     Name = "dev"
@@ -100,6 +132,8 @@ resource "aws_ecs_service" "remote_dev_service" {
     container_port   = 80
   }
 
+  depends_on = [aws_ecs_task_definition.remote_dev_task_definition]
+
   tags = {
     Name = "dev"
   }
@@ -125,6 +159,8 @@ resource "aws_ecs_service" "remote_dev_service_apache" {
     container_name   = "remote-dev-container"
     container_port   = 80
   }
+
+  depends_on = [aws_ecs_task_definition.remote_dev_task_definition_apache]
 
   tags = {
     Name = "dev"
